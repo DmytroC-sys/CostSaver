@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Optimizer Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Welcome to Cost Optimizer</h1>
+    <div>
+        <p>Your current AWS usage is:</p>
+        <p>{{ usage_data }}</p>  <!-- Render dynamic data from Python -->
+    </div>
+</body>
+</html>
+
