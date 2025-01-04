@@ -1,0 +1,65 @@
+# .github/workflows/deploy.yml
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run Tests
+        run: |
+          pytest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, Tag, and Push Docker Image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t my-app:$IMAGE_TAG .
+          docker tag my-app:$IMAGE_TAG <aws_account_id>.dkr.ecr.<region>.amazonaws.com/my-app:$IMAGE_TAG
+          docker push <aws_account_id>.dkr.ecr.<region>.amazonaws.com/my-app:$IMAGE_TAG
+
+      - name: Deploy to Environment
+        run: |
+          echo "Deployment logic goes here."
+          # Add your custom deployment script for Kubernetes or other infrastructure
+
